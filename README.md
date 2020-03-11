@@ -1,5 +1,21 @@
 # Minimal case to reproduce an issue I'm seeing with newrelic 6.4.2 and koa-router
 
+## [UPDATE] what fixes this?
+
+So with newrelic v4 and v5, you could run a server application with newrelic without a license key (for example, while developing). You'd see _an_ error from Newrelic on startup…
+
+```
+Error: Not starting without license key!
+    at onNextTick (node_modules/newrelic/lib/agent.js:227:16)
+    at processTicksAndRejections (internal/process/task_queues.js:79:11)
+```
+
+… but your app would otherwise work normally.
+
+With newrelic v6, it appears that has changed: if you don't provide a license key, lots of things now don't work.
+
+I fixed it for my application by requiring newrelic ONLY when you know you'll have the license key available (for example, `if (process.env.NODE_ENV === 'production') { require('newrelic') }`). YMMV.
+
 ## What is this?
 
 This is a minimal koa and koa-router server application.
@@ -39,3 +55,10 @@ TypeError: Cannot read property 'nameState' of null
     at Server.wrappedHandler (node_modules/newrelic/lib/instrumentation/core/http.js:51:35)
     at Server.wrapTransactionInvocation (node_modules/newrelic/lib/transaction/tracer/index.js:93:22)
 ```
+
+## Environment
+
+- node v12.16.1
+- newrelic v6.4.2 (can reproduce with any ~6.0 version)
+- koa 2.11.0 (have also seen the same error with v2.8.1)
+- koa-router 8.0.8 (have also seen the same error with v7.4.0)
